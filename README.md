@@ -1,113 +1,147 @@
-# celo-mcp
+# conduit
 
-A TypeScript Model Context Protocol (MCP) server for interacting with the **Celo Blockchain**. This server exposes tools to LLMs (like Claude) for checking balances, looking up transactions, querying prices, transferring tokens, swapping on Mento, and interacting with lending protocols (like Aave).
+> The missing infrastructure layer that connects any AI to the Celo blockchain.
 
-## Project Status
+[![npm version](https://img.shields.io/npm/v/conduit-celo.svg)](https://www.npmjs.com/package/conduit-celo)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Built for Celo](https://img.shields.io/badge/Built%20for-Celo-FCFF52.svg)](https://celo.org)
+[![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io)
 
-- **Phase 1 (Completed)**: Core setup with TypeScript `NodeNext` support, Viem Celo client configuration, and a working `ping` connectivity tool.
+## The problem
 
----
+Every AI model — Claude, GPT, Gemini — has zero ability to interact with any blockchain out of the box. They can talk *about* crypto but cannot *touch* it. Meanwhile, developers who want to build AI agents on Celo have to manually integrate viem, Mento, Aave, and Self Protocol separately — weeks of work before writing a single line of agent logic.
 
-## Project Structure
+**conduit solves both problems in one package.**
 
-```text
-celo-mcp/
-├── dist/                  # Compiled JavaScript output
-├── src/
-│   ├── index.ts          # MCP server entry point & tool registration
-│   ├── client.ts         # Viem Celo public & wallet client setup
-│   └── tools/            # (Placeholder folders for Phase 2 tools)
-│       ├── get_balance.ts
-│       ├── get_transactions.ts
-│       ├── get_token_price.ts
-│       ├── send_tokens.ts
-│       ├── swap_tokens.ts
-│       ├── x402_pay.ts
-│       ├── lend_on_aave.ts
-│       ├── withdraw_from_aave.ts
-│       ├── self_verify.ts
-│       └── check_agent_id.ts
-├── .env.example          # Environment variable template
-├── .env                  # Environment variables (gitignored)
-├── tsconfig.json         # TypeScript configuration
-├── package.json          # Dependency and script management
-└── README.md             # Project documentation
-```
+## What it does
 
----
+conduit is a TypeScript MCP server that gives any LLM instant read and write access to the Celo blockchain. Connect Claude, GPT, or any MCP-compatible AI to Celo — check balances, send tokens, swap via Mento, lend on Aave v3, make x402 payments, and verify Self Protocol credentials, all from a single chat session.
 
-## Setup & Installation
+One installation. One config. Full Celo access.
 
-### 1. Requirements
-* Node.js (v18+)
-* npm
+## Demo
 
-### 2. Install Dependencies
-Clone or navigate to the directory and run:
 ```bash
-npm install
+# Install and run
+npm install -g conduit-celo
+
+# Ask Claude
+"Check my Celo wallet balance"
+"Swap 10 USDC to cKES"
+"Deposit 50 USDC to Aave and tell me the APY"
+"Verify this wallet using Self Protocol"
 ```
 
-### 3. Environment Variables
-Copy `.env.example` to `.env` and fill out your details:
+## Tools (11 total)
+
+| Tool | Type | Description |
+|------|------|-------------|
+| `ping` | Read | Test connectivity and get current Celo block number |
+| `get_balance` | Read | Check CELO, USDC, cUSD, cKES, cEUR balances for any address |
+| `get_transactions` | Read | Fetch and classify recent wallet transactions |
+| `get_token_price` | Read | Live token prices in USD via CoinGecko |
+| `send_tokens` | Write | Send CELO or any ERC-20 to an address |
+| `swap_tokens` | Write | Swap tokens via Mento protocol |
+| `x402_pay` | Write | Make stablecoin payments to x402-enabled endpoints |
+| `lend_on_aave` | Write | Deposit tokens to Aave v3 on Celo to earn yield |
+| `withdraw_from_aave` | Write | Withdraw from your Aave v3 position |
+| `self_verify` | Read | Verify a wallet's Self Protocol credential |
+| `check_agent_id` | Read | Look up and verify a Self Agent ID |
+
+## Why conduit matters for Celo
+
+- **Expands the developer base** — AI developers who don't know Web3 can now build on Celo without learning blockchain development
+- **Every tool call = a real transaction** — drives genuine onchain activity across the Celo ecosystem
+- **Foundation for every other agent** — savings agents, remittance tools, DeFi bots, all built faster on top of conduit
+- **Sybil resistance built in** — Self Protocol integration means any agent using conduit can verify real humans from day one
+- **Serves MiniPay's 15M users** — AI agents built on conduit can reach real users in Nigeria, Kenya, and Ghana immediately
+
+## Prerequisites
+
+- Node.js 18+
+- A Celo wallet private key
+- Self Protocol API key (optional, for `self_verify` and `check_agent_id`)
+
+## Installation
+
+### Option 1: Install from npm
+```bash
+npm install -g conduit-celo
+```
+
+### Option 2: Clone and build
+```bash
+git clone https://github.com/Miracle-Alajemba/conduit
+cd conduit
+npm install
+npm run build
+```
+
+## Configuration
+
+Copy `.env.example` to `.env` and fill in your values:
 ```bash
 cp .env.example .env
 ```
 
-Configuration variables:
-* `CELO_RPC_URL`: The RPC endpoint for Celo mainnet (defaults to `https://forno.celo.org`).
-* `PRIVATE_KEY`: Your wallet private key (used for transaction tools in Phase 2).
-* `WALLET_ADDRESS`: Your wallet public address.
-* `CELO_EXPLORER_API`: API URL for block explorer requests.
-* `SELF_API_KEY`: API Key for Self Protocol identity validation tools.
-
----
-
-## Build & Run
-
-### Build the server:
-```bash
-npm run build
+```env
+CELO_RPC_URL=https://forno.celo.org
+PRIVATE_KEY=your_wallet_private_key_here
+WALLET_ADDRESS=your_wallet_address_here
+CELO_EXPLORER_API=https://explorer.celo.org/mainnet/api
+SELF_API_KEY=your_self_protocol_api_key
 ```
 
-### Run the server (stdio):
-```bash
-npm run start
-```
+## Claude Desktop Setup
 
-### Run in watch/development mode:
-```bash
-npm run dev
-```
-
----
-
-## Tools
-
-### Core Tools (Phase 1)
-- **`ping`**: Verification tool that connects to the Celo network, retrieves the latest block number, and returns server status.
-
----
-
-## Claude Desktop Configuration
-
-To run this MCP server within Claude Desktop, add the following to your Claude Desktop configuration file (typically found at `~/.config/Claude/claude_desktop_config.json` on Linux/macOS or `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
+Add this to your `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
-    "celo-mcp": {
-      "command": "node",
-      "args": [
-        "/home/miracle-alajemba/.gemini/antigravity/scratch/celo-mcp/dist/index.js"
-      ],
+    "conduit": {
+      "command": "npx",
+      "args": ["conduit-celo"],
       "env": {
         "CELO_RPC_URL": "https://forno.celo.org",
-        "PRIVATE_KEY": "your_wallet_private_key_here"
+        "PRIVATE_KEY": "your_private_key_here",
+        "WALLET_ADDRESS": "your_wallet_address_here",
+        "SELF_API_KEY": "your_self_api_key_here"
       }
     }
   }
 }
 ```
 
-Replace the paths and environment variables with your actual configuration.
+Claude Desktop config file location:
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+## Safety first
+
+All write tools (`send_tokens`, `swap_tokens`, `x402_pay`, `lend_on_aave`, `withdraw_from_aave`) default to `dryRun: true`. No real transaction is sent unless you explicitly pass `dryRun: false`. Every write tool simulates first and shows you exactly what will happen before touching real funds.
+
+## Built with
+
+- [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) — MCP server framework
+- [viem](https://viem.sh) — Celo chain interaction
+- [Mento Protocol](https://mento.org) — Token swaps
+- [Aave v3](https://aave.com) — DeFi lending
+- [Self Protocol](https://self.xyz) — Human verification
+- [x402 / Thirdweb](https://portal.thirdweb.com/x402) — Stablecoin payments
+
+## Roadmap
+
+- [ ] Add Ubeswap integration for deeper liquidity
+- [ ] Multi-wallet support
+- [ ] Natural language transaction summaries
+- [ ] MiniPay deep integration
+- [ ] Agent-to-agent payment flows via x402
+
+## Contributing
+
+PRs welcome. Open an issue first to discuss what you'd like to change.
+
+## License
+
+MIT — built with ❤️ for the Celo ecosystem

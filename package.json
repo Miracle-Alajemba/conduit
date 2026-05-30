@@ -1,26 +1,45 @@
 {
-  "name": "celo-mcp",
+  "name": "conduit-celo",
   "version": "1.0.0",
-  "description": "Celo Model Context Protocol (MCP) Server",
-  "type": "module",
+  "description": "A TypeScript MCP server that connects any AI to the Celo blockchain",
   "main": "dist/index.js",
+  "bin": {
+    "conduit": "dist/index.js",
+    "conduit-celo": "dist/index.js"
+  },
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc -w"
   },
-  "keywords": [
-    "mcp",
-    "celo",
-    "viem",
-    "web3"
+  "files": [
+    "dist",
+    "README.md",
+    ".env.example",
+    "claude_desktop_config.json"
   ],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "celo",
+    "mcp",
+    "blockchain",
+    "ai-agent",
+    "stablecoin",
+    "web3",
+    "aave",
+    "mento"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
+    "@aave/contract-helpers": "^1.38.0",
+    "@aave/math-utils": "^1.38.0",
     "@mento-protocol/mento-sdk": "^3.2.8",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "dotenv": "^17.4.2",
+    "thirdweb": "^5.120.0",
     "viem": "^2.51.3",
     "zod": "^4.4.3"
   },
