@@ -85,12 +85,28 @@ cp .env.example .env
 ```
 
 ```env
+# ─── RPC Configuration ───────────────────────────────────────────
+# Development (free, may rate limit under heavy agent volume)
 CELO_RPC_URL=https://forno.celo.org
+
+# Production (recommended for high volume agents)
+# Get a free dedicated Celo endpoint at https://chainstack.com
+# CELO_RPC_URL=https://your-chainstack-endpoint-here
+
+# ─── Wallet Configuration ────────────────────────────────────────
 PRIVATE_KEY=your_wallet_private_key_here
 WALLET_ADDRESS=your_wallet_address_here
+
+# ─── API Keys ────────────────────────────────────────────────────
 CELO_EXPLORER_API=https://explorer.celo.org/mainnet/api
 SELF_API_KEY=your_self_protocol_api_key
 ```
+
+> **Note:** For production agents handling high transaction volume, 
+> we recommend using a dedicated RPC endpoint via 
+> [Chainstack](https://chainstack.com) instead of the public Forno 
+> endpoint which may rate limit under heavy load.
+
 
 ## Claude Desktop Setup
 
