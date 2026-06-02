@@ -22,7 +22,7 @@ body::before {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-image: 
+  background-image:
     linear-gradient(rgba(252, 255, 82, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(252, 255, 82, 0.03) 1px, transparent 1px);
   background-size: 40px 40px;
@@ -68,18 +68,9 @@ header {
   gap: 10px;
 }
 
-.logo-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #FCFF52;
-  box-shadow: 0 0 8px #FCFF52;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
+.logo img {
+  height: 24px;
+  width: auto;
 }
 
 .logo span { color: rgba(255,255,255,0.4); font-weight: 400; }
@@ -503,7 +494,7 @@ header {
 
 <header>
   <div class="logo">
-    <div class="logo-dot"></div>
+    <img src="logo.png" alt="conduit logo" />
     conduit<span>.celo</span>
   </div>
   <div class="header-right">
@@ -513,7 +504,7 @@ header {
 </header>
 
 <div class="hero">
-  <div class="hero-tag">Celo Onchain Agents Hackathon 2026</div>
+  <div class="hero-tag">celo</div>
   <h1>Any AI.<br><span class="highlight">Full Celo Access.</span></h1>
   <p>conduit is an MCP server that gives any LLM instant read and write access to the Celo blockchain. 11 tools. One install.</p>
   <div class="install-wrapper">
@@ -525,7 +516,7 @@ header {
   <div class="hero-links">
     <a href="https://github.com/Miracle-Alajemba/conduit" target="_blank" class="hero-link">↗ GitHub</a>
     <a href="https://www.npmjs.com/package/conduit-celo" target="_blank" class="hero-link">↗ npm</a>
-    <a href="https://agentscan.info/agent/9188" target="_blank" class="hero-link">↗ agentscan</a>
+    <a href="https://8004scan.io/agents/celo/9188" target="_blank" class="hero-link">↗ agentscan</a>
   </div>
 </div>
 
@@ -565,7 +556,7 @@ header {
   <div class="footer-links">
     <a href="https://github.com/Miracle-Alajemba/conduit" target="_blank">GitHub</a>
     <a href="https://www.npmjs.com/package/conduit-celo" target="_blank">npm</a>
-    <a href="https://agentscan.info/agent/9188" target="_blank">agentscan</a>
+    <a href="https://8004scan.io/agents/celo/9188" target="_blank">agentscan</a>
     <a href="https://useconduit.vercel.app" target="_blank">Live</a>
   </div>
 </div>
