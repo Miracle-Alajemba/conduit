@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Built for Celo](https://img.shields.io/badge/Built%20for-Celo-FCFF52.svg)](https://celo.org)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-useconduit.vercel.app-FCFF52)](https://useconduit.vercel.app)
 
 ## The problem
 
@@ -16,6 +17,8 @@ Every AI model — Claude, GPT, Gemini — has zero ability to interact with any
 ## What it does
 
 conduit is a TypeScript MCP server that gives any LLM instant read and write access to the Celo blockchain. Connect Claude, GPT, or any MCP-compatible AI to Celo — check balances, send tokens, swap via Mento, lend on Aave v3, make x402 payments, and verify Self Protocol credentials, all from a single chat session.
+
+> 🌐 Live site: [https://useconduit.vercel.app](https://useconduit.vercel.app)
 
 One installation. One config. Full Celo access.
 
