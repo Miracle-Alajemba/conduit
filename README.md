@@ -21,16 +21,20 @@ One installation. One config. Full Celo access.
 
 ## Demo
 
-```bash
-# Install and run
-npm install -g conduit-celo
+![conduit demo](https://raw.githubusercontent.com/Miracle-Alajemba/conduit/main/public/screenshot.png)
 
-# Ask Claude
-"Check my Celo wallet balance"
-"Swap 10 USDC to cKES"
-"Deposit 50 USDC to Aave and tell me the APY"
-"Verify this wallet using Self Protocol"
+Try it live locally:
+```bash
+# Clone and install
+git clone https://github.com/Miracle-Alajemba/conduit
+cd conduit
+npm install
+npm run build
+
+# Start the demo UI
+npm run demo
 ```
+Then open `http://localhost:3000` in your browser to see all 11 tools running live.
 
 ## Tools (11 total)
 
@@ -47,6 +51,24 @@ npm install -g conduit-celo
 | `withdraw_from_aave` | Write | Withdraw from your Aave v3 position |
 | `self_verify` | Read | Verify a wallet's Self Protocol credential |
 | `check_agent_id` | Read | Look up and verify a Self Agent ID |
+
+## Interactive Demo UI
+
+conduit ships with a built in web UI for testing and demoing all 11 tools directly from your browser. No Claude Desktop or MCP Inspector needed.
+
+Features:
+- Live Celo network connection status at the bottom of the page
+- All 11 tools displayed as interactive cards
+- Read tools return live onchain data instantly
+- Write tools default to dry run mode — safe to test without real funds
+- One click copy for the npm install command
+- Direct links to GitHub, npm, and agentscan
+
+To start the demo UI:
+```bash
+npm run demo
+```
+Then open `http://localhost:3000`
 
 ## Why conduit matters for Celo
 
@@ -76,6 +98,16 @@ cd conduit
 npm install
 npm run build
 ```
+
+### Option 3: Run the demo UI
+```bash
+git clone https://github.com/Miracle-Alajemba/conduit
+cd conduit
+npm install
+npm run build
+npm run demo
+```
+Open `http://localhost:3000` to interact with all 11 tools from a browser UI.
 
 ## Configuration
 
@@ -153,6 +185,14 @@ All write tools (`send_tokens`, `swap_tokens`, `x402_pay`, `lend_on_aave`, `with
 - [ ] Natural language transaction summaries
 - [ ] MiniPay deep integration
 - [ ] Agent-to-agent payment flows via x402
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run build` | Compile TypeScript to JavaScript |
+| `npm start` | Start the MCP server (for Claude Desktop / MCP clients) |
+| `npm run demo` | Start the browser demo UI at http://localhost:3000 |
 
 ## Contributing
 
