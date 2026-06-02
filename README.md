@@ -7,6 +7,7 @@
 [![Built for Celo](https://img.shields.io/badge/Built%20for-Celo-FCFF52.svg)](https://celo.org)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-useconduit.vercel.app-FCFF52)](https://useconduit.vercel.app)
+[![8004scan](https://img.shields.io/badge/8004scan-agent%209188-green)](https://8004scan.io/agents/celo/9188)
 
 ## The problem
 
@@ -196,6 +197,13 @@ All write tools (`send_tokens`, `swap_tokens`, `x402_pay`, `lend_on_aave`, `with
 | `npm run build` | Compile TypeScript to JavaScript |
 | `npm start` | Start the MCP server (for Claude Desktop / MCP clients) |
 | `npm run demo` | Start the browser demo UI at http://localhost:3000 |
+
+## Links
+
+- **GitHub:** https://github.com/Miracle-Alajemba/conduit
+- **npm:** https://www.npmjs.com/package/conduit-celo
+- **agentscan:** https://agentscan.info/agent/9188
+- **8004scan:** https://8004scan.io/agents/celo/9188
 
 ## Contributing
 
