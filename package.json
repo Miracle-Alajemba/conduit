@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsc -w"
+    "demo": "node dist/server.js"
   },
   "files": [
     "dist",
@@ -38,12 +38,16 @@
     "@aave/math-utils": "^1.38.0",
     "@mento-protocol/mento-sdk": "^3.2.8",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "thirdweb": "^5.120.0",
     "viem": "^2.51.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^25.9.1",
     "typescript": "^6.0.3"
   }

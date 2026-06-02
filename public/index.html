@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>conduit — Celo MCP Server</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      min-height: 100vh;
+    }
+    header {
+      padding: 24px 40px;
+      border-bottom: 1px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo img {
+      height: 32px;
+      width: auto;
+    }
+    .badge {
+      background: #FCFF52;
+      color: #000;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .hero {
+      text-align: center;
+      padding: 60px 40px 40px;
+    }
+    .hero h1 {
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: #FCFF52; }
+    .hero p {
+      font-size: 18px;
+      color: #888;
+      max-width: 560px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    .install-box {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 16px 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      font-family: monospace;
+      font-size: 16px;
+      color: #FCFF52;
+      margin-bottom: 60px;
+    }
+    .copy-btn {
+      background: #222;
+      border: none;
+      color: #888;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .copy-btn:hover { background: #333; color: #fff; }
+    .tools-section {
+      padding: 0 40px 60px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .tools-section h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .tool-card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .tool-card:hover { border-color: #FCFF52; }
+    .tool-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .tool-name {
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: #FCFF52;
+    }
+    .tool-type {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .type-read { background: #0d2d1a; color: #4ade80; }
+    .type-write { background: #2d1a0d; color: #fb923c; }
+    .tool-desc {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .tool-inputs { margin-bottom: 12px; }
+    .input-group { margin-bottom: 8px; }
+    .input-group label {
+      display: block;
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .input-group input, .input-group select {
+      width: 100%;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+    .input-group input:focus, .input-group select:focus {
+      border-color: #FCFF52;
+    }
+    .run-btn {
+      width: 100%;
+      background: #FCFF52;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .run-btn:hover { opacity: 0.85; }
+    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .result-box {
+      margin-top: 12px;
+      background: #0a0a0a;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #4ade80;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+    .result-box.error { color: #f87171; }
+    .result-box.visible { display: block; }
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #111;
+      border-top: 1px solid #222;
+      padding: 12px 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #555;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #333;
+    }
+    .status-dot.connected { background: #4ade80; }
+    .links {
+      display: flex;
+      gap: 16px;
+      margin-left: auto;
+    }
+    .links a {
+      color: #555;
+      text-decoration: none;
+      font-size: 13px;
+    }
+    .links a:hover { color: #FCFF52; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <img src="logo.png" alt="conduit logo" />
+    conduit
+  </div>
+  <span class="badge">MCP Server</span>
+</header>
+
+<div class="hero">
+  <h1>Any AI. Full <span>Celo</span> Access.</h1>
+  <p>conduit is an MCP server that gives any LLM instant read and write access to the Celo blockchain. 11 tools. One install.</p>
+  <div class="install-box">
+    npm install -g conduit-celo
+    <button class="copy-btn" onclick="copyInstall()">copy</button>
+  </div>
+</div>
+
+<div class="tools-section">
+  <h2>Try the tools live</h2>
+  <div class="tools-grid" id="tools-grid"></div>
+</div>
+
+<div class="status-bar">
+  <div class="status-dot" id="status-dot"></div>
+  <span id="status-text">Connecting to conduit...</span>
+  <div class="links">
+    <a href="https://github.com/Miracle-Alajemba/conduit" target="_blank">GitHub</a>
+    <a href="https://www.npmjs.com/package/conduit-celo" target="_blank">npm</a>
+    <a href="https://agentscan.info/agent/9188" target="_blank">agentscan</a>
+  </div>
+</div>
+
+<script>
+const TOOLS = [
+  {
+    name: 'ping',
+    type: 'read',
+    desc: 'Test connectivity and get current Celo block number',
+    inputs: [],
+  },
+  {
+    name: 'get_balance',
+    type: 'read',
+    desc: 'Check token balances for any Celo wallet address',
+    inputs: [
+      { key: 'address', label: 'Wallet Address', placeholder: '0x765DE816845861e75A25fCA122bb6898B8B1282a' },
+    ],
+  },
+  {
+    name: 'get_token_price',
+    type: 'read',
+    desc: 'Get live token prices in USD via CoinGecko',
+    inputs: [
+      { key: 'tokens', label: 'Tokens (comma separated)', placeholder: 'CELO,cUSD' },
+    ],
+  },
+  {
+    name: 'get_transactions',
+    type: 'read',
+    desc: 'Fetch and classify recent wallet transactions',
+    inputs: [
+      { key: 'address', label: 'Wallet Address', placeholder: '0x765DE816845861e75A25fCA122bb6898B8B1282a' },
+      { key: 'limit', label: 'Limit', placeholder: '5' },
+    ],
+  },
+  {
+    name: 'send_tokens',
+    type: 'write',
+    desc: 'Send CELO or any ERC-20 token (dry run by default)',
+    inputs: [
+      { key: 'to', label: 'Recipient Address', placeholder: '0x...' },
+      { key: 'token', label: 'Token', placeholder: 'CELO' },
+      { key: 'amount', label: 'Amount', placeholder: '0.001' },
+    ],
+  },
+  {
+    name: 'swap_tokens',
+    type: 'write',
+    desc: 'Swap tokens via Mento protocol (dry run by default)',
+    inputs: [
+      { key: 'fromToken', label: 'From Token', placeholder: 'USDC' },
+      { key: 'toToken', label: 'To Token', placeholder: 'cKES' },
+      { key: 'amount', label: 'Amount', placeholder: '1' },
+    ],
+  },
+  {
+    name: 'lend_on_aave',
+    type: 'write',
+    desc: 'Deposit tokens to Aave v3 on Celo to earn yield',
+    inputs: [
+      { key: 'token', label: 'Token', placeholder: 'USDC' },
+      { key: 'amount', label: 'Amount', placeholder: '10' },
+    ],
+  },
+  {
+    name: 'get_network_status',
+    type: 'read',
+    desc: 'Check Celo network health and current gas price',
+    inputs: [],
+  },
+  {
+    name: 'self_verify',
+    type: 'read',
+    desc: 'Verify a wallet using Self Protocol credentials',
+    inputs: [
+      { key: 'address', label: 'Wallet Address', placeholder: '0x...' },
+    ],
+  },
+  {
+    name: 'check_agent_id',
+    type: 'read',
+    desc: 'Look up and verify a Self Agent ID',
+    inputs: [
+      { key: 'agentId', label: 'Agent ID', placeholder: '9188' },
+    ],
+  },
+  {
+    name: 'x402_pay',
+    type: 'write',
+    desc: 'Make a stablecoin payment to an x402 endpoint',
+    inputs: [
+      { key: 'url', label: 'Endpoint URL', placeholder: 'https://...' },
+      { key: 'maxAmountUSD', label: 'Max Amount USD', placeholder: '0.10' },
+    ],
+  },
+];
+
+function buildGrid() {
+  const grid = document.getElementById('tools-grid');
+  TOOLS.forEach(tool => {
+    const card = document.createElement('div');
+    card.className = 'tool-card';
+    card.innerHTML = `
+      <div class="tool-header">
+        <span class="tool-name">${tool.name}</span>
+        <span class="tool-type type-${tool.type}">${tool.type}</span>
+      </div>
+      <p class="tool-desc">${tool.desc}</p>
+      <div class="tool-inputs" id="inputs-${tool.name}">
+        ${tool.inputs.map(inp => `
+          <div class="input-group">
+            <label>${inp.label}</label>
+            <input type="text" id="${tool.name}-${inp.key}" placeholder="${inp.placeholder}" />
+          </div>
+        `).join('')}
+      </div>
+      <button class="run-btn" onclick="runTool('${tool.name}')">Run ${tool.name}</button>
+      <div class="result-box" id="result-${tool.name}"></div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function runTool(name) {
+  const tool = TOOLS.find(t => t.name === name);
+  const btn = document.querySelector(`button[onclick="runTool('${name}')"]`);
+  const resultBox = document.getElementById(`result-${name}`);
+
+  const params = {};
+  tool.inputs.forEach(inp => {
+    const val = document.getElementById(`${name}-${inp.key}`).value;
+    if (val) params[inp.key] = val;
+  });
+
+  if (['send_tokens', 'swap_tokens', 'lend_on_aave', 'x402_pay'].includes(name)) {
+    params.dryRun = true;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  resultBox.className = 'result-box visible';
+  resultBox.textContent = 'Calling conduit...';
+
+  try {
+    const res = await fetch('/api/tool', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tool: name, params })
+    });
+    const data = await res.json();
+    resultBox.className = 'result-box visible';
+    resultBox.textContent = JSON.stringify(data, null, 2);
+  } catch (err) {
+    resultBox.className = 'result-box error visible';
+    resultBox.textContent = 'Error: ' + err.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = `Run ${name}`;
+}
+
+function copyInstall() {
+  navigator.clipboard.writeText('npm install -g conduit-celo');
+  event.target.textContent = 'copied!';
+  setTimeout(() => event.target.textContent = 'copy', 2000);
+}
+
+async function checkStatus() {
+  try {
+    const res = await fetch('/api/status');
+    const data = await res.json();
+    document.getElementById('status-dot').className = 'status-dot connected';
+    document.getElementById('status-text').textContent = `Connected to Celo — block ${data.blockNumber}`;
+  } catch {
+    document.getElementById('status-text').textContent = 'conduit server not running';
+  }
+}
+
+buildGrid();
+checkStatus();
+setInterval(checkStatus, 10000);
+</script>
+</body>
+</html>
