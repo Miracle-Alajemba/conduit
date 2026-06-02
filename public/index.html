@@ -240,6 +240,10 @@
 
 <div class="tools-section">
   <h2>Try the tools live</h2>
+  <div style="background:#111;border:1px solid #333;border-radius:10px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap;">
+    <span style="color:#888;font-size:13px;">🖥️ Run conduit locally to interact with all 11 tools live on Celo mainnet</span>
+    <a href="https://github.com/Miracle-Alajemba/conduit" target="_blank" style="background:#FCFF52;color:#000;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">Clone on GitHub →</a>
+  </div>
   <div class="tools-grid" id="tools-grid"></div>
 </div>
 
@@ -367,7 +371,7 @@ function buildGrid() {
           </div>
         `).join('')}
       </div>
-      <button class="run-btn" onclick="runTool('${tool.name}')">Run ${tool.name}</button>
+      <button class="run-btn" onclick="runTool('${tool.name}')">Try ${tool.name} locally</button>
       <div class="result-box" id="result-${tool.name}"></div>
     `;
     grid.appendChild(card);
@@ -375,41 +379,9 @@ function buildGrid() {
 }
 
 async function runTool(name) {
-  const tool = TOOLS.find(t => t.name === name);
-  const btn = document.querySelector(`button[onclick="runTool('${name}')"]`);
-  const resultBox = document.getElementById(`result-${name}`);
-
-  const params = {};
-  tool.inputs.forEach(inp => {
-    const val = document.getElementById(`${name}-${inp.key}`).value;
-    if (val) params[inp.key] = val;
-  });
-
-  if (['send_tokens', 'swap_tokens', 'lend_on_aave', 'x402_pay'].includes(name)) {
-    params.dryRun = true;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Running...';
-  resultBox.className = 'result-box visible';
-  resultBox.textContent = 'Calling conduit...';
-
-  try {
-    const res = await fetch('/api/tool', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tool: name, params })
-    });
-    const data = await res.json();
-    resultBox.className = 'result-box visible';
-    resultBox.textContent = JSON.stringify(data, null, 2);
-  } catch (err) {
-    resultBox.className = 'result-box error visible';
-    resultBox.textContent = 'Error: ' + err.message;
-  }
-
-  btn.disabled = false;
-  btn.textContent = `Run ${name}`;
+  const resultBox = document.getElementById(`result-${name}`)
+  resultBox.className = 'result-box visible'
+  resultBox.textContent = '⚡ Clone the repo and run npm run demo to test this tool live.\nGitHub → https://github.com/Miracle-Alajemba/conduit'
 }
 
 function copyInstall() {
@@ -418,20 +390,13 @@ function copyInstall() {
   setTimeout(() => event.target.textContent = 'copy', 2000);
 }
 
-async function checkStatus() {
-  try {
-    const res = await fetch('/api/status');
-    const data = await res.json();
-    document.getElementById('status-dot').className = 'status-dot connected';
-    document.getElementById('status-text').textContent = `Connected to Celo — block ${data.blockNumber}`;
-  } catch {
-    document.getElementById('status-text').textContent = 'conduit server not running';
-  }
+function checkStatus() {
+  document.getElementById('status-dot').className = 'status-dot connected'
+  document.getElementById('status-text').textContent = 'conduit — MCP server for Celo blockchain'
 }
 
 buildGrid();
 checkStatus();
-setInterval(checkStatus, 10000);
 </script>
 </body>
 </html>
