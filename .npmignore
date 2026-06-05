@@ -1,0 +1,12 @@
+src/
+*.ts
+tests/
+.github/
+*.map
+*.tsbuildinfo
+node_modules/
+.env
+.env.example.bak
+coverage/
+.nyc_output/
+*.log

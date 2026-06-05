@@ -175,7 +175,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "x402_pay",
-        description: "Make a stablecoin payment to an x402-enabled URL endpoint using the x402 payment protocol via Thirdweb.",
+        description: "Make a stablecoin payment to an x402-enabled URL endpoint using the x402 payment protocol.",
         inputSchema: {
           type: "object",
           properties: {
