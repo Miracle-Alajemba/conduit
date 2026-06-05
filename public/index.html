@@ -594,7 +594,7 @@ header {
     conduit<span>.celo</span>
   </div>
   <div class="header-right">
-    <span class="badge">v1.0.0</span>
+    <span class="badge">v1.2.0</span>
     <a href="https://github.com/Miracle-Alajemba/conduit" target="_blank" class="github-link">GitHub ↗</a>
   </div>
 </header>
@@ -602,7 +602,7 @@ header {
 <div class="hero">
   <div class="hero-tag">The missing bridge between AI and Celo</div>
   <h1>Any AI.<br><span class="highlight">Full Celo Access.</span></h1>
-  <p>conduit is an MCP server that gives any LLM instant read and write access to the Celo blockchain. 11 tools. One install.</p>
+  <p>conduit is an MCP server that gives any LLM instant read and write access to the Celo blockchain. 13 tools. One install.</p>
   <div class="install-wrapper">
     <div class="install-box">
       <span class="dollar">$</span> npm install -g conduit-celo
@@ -618,7 +618,7 @@ header {
 
 <div class="stats-bar">
   <div class="stat">
-    <div class="stat-number">11</div>
+    <div class="stat-number">13</div>
     <div class="stat-label">Tools</div>
   </div>
   <div class="stat-divider"></div>
@@ -750,6 +750,23 @@ const TOOLS = [
     inputs: [
       { key: 'token', label: 'Token', placeholder: 'USDC' },
       { key: 'amount', label: 'Amount', placeholder: '10' },
+    ],
+  },
+  {
+    name: 'withdraw_from_aave',
+    type: 'write',
+    desc: 'Withdraw tokens from your Aave v3 position on Celo',
+    inputs: [
+      { key: 'token', label: 'Token', placeholder: 'USDC' },
+      { key: 'amount', label: 'Amount', placeholder: '10' },
+    ],
+  },
+  {
+    name: 'get_aave_positions',
+    type: 'read',
+    desc: 'Check active Aave v3 positions (deposits, debt, health factor)',
+    inputs: [
+      { key: 'address', label: 'Wallet Address', placeholder: '0x765DE816845861e75A25fCA122bb6898B8B1282a' },
     ],
   },
   {
