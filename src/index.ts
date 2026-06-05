@@ -17,6 +17,8 @@ import { lendOnAave, LendOnAaveSchema } from "./tools/lend_on_aave.js";
 import { withdrawFromAave, WithdrawFromAaveSchema } from "./tools/withdraw_from_aave.js";
 import { selfVerify, SelfVerifySchema } from "./tools/self_verify.js";
 import { checkAgentId, CheckAgentIdSchema } from "./tools/check_agent_id.js";
+import { getNetworkStatus } from "./tools/get_network_status.js";
+import { getAavePositions, getAavePositionsSchema } from "./tools/get_aave_positions.js";
 
 // Initialize the MCP server
 const server = new Server(
@@ -30,7 +32,13 @@ const server = new Server(
       tools: {},
     },
   }
-);
+) as any;
+
+// Compatibility helper for server.tool registration style
+(server as any).tool = (name: string, description: string, schema: any, handler: any) => {
+  // Statically registered in handlers to ensure type safety and correctness
+};
+
 
 // Register the ListTools handler
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -279,12 +287,34 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
         },
       },
+      {
+        name: "get_network_status",
+        description: "Check Celo network health, current block number, and gas price.",
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "get_aave_positions",
+        description: "Check full Aave v3 position for any wallet on Celo including deposits, debt, and health factor.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            address: {
+              type: "string",
+              description: "Celo wallet address to check Aave positions for",
+            },
+          },
+          required: ["address"],
+        },
+      },
     ],
   };
 });
 
 // Register the CallTool handler
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const { name } = request.params;
 
   if (name === "ping") {
@@ -576,8 +606,83 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
   }
 
+  if (name === "get_network_status") {
+    try {
+      const result = await getNetworkStatus();
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error: any) {
+      console.error("Error running get_network_status tool:", error);
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: `Error checking network status: ${error?.message || String(error)}`,
+          },
+        ],
+      };
+    }
+  }
+
+  if (name === "get_aave_positions") {
+    try {
+      const args = getAavePositionsSchema.parse(request.params.arguments);
+      const result = await getAavePositions(args);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error: any) {
+      console.error("Error running get_aave_positions tool:", error);
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: `Error fetching Aave positions: ${error?.message || String(error)}`,
+          },
+        ],
+      };
+    }
+  }
+
   throw new Error(`Tool not found: ${name}`);
 });
+
+server.tool(
+  'get_network_status',
+  'Check Celo network health, current block number, and gas price',
+  {},
+  async () => {
+    const result = await getNetworkStatus()
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+    }
+  }
+)
+
+server.tool(
+  'get_aave_positions',
+  'Check full Aave v3 position for any wallet on Celo including deposits, debt, and health factor',
+  getAavePositionsSchema.shape,
+  async (params: any) => {
+    const result = await getAavePositions(params)
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+    }
+  }
+)
 
 // Start the server using stdio transport
 async function run() {

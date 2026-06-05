@@ -139,9 +139,9 @@ CELO_EXPLORER_API=https://explorer.celo.org/mainnet/api
 SELF_API_KEY=your_self_protocol_api_key
 ```
 
-> **Note:** For production agents handling high transaction volume, 
-> we recommend using a dedicated RPC endpoint via 
-> [Chainstack](https://chainstack.com) instead of the public Forno 
+> **Note:** For production agents handling high transaction volume,
+> we recommend using a dedicated RPC endpoint via
+> [Chainstack](https://chainstack.com) instead of the public Forno
 > endpoint which may rate limit under heavy load.
 
 
@@ -203,7 +203,6 @@ All write tools (`send_tokens`, `swap_tokens`, `x402_pay`, `lend_on_aave`, `with
 
 - **GitHub:** https://github.com/Miracle-Alajemba/conduit
 - **npm:** https://www.npmjs.com/package/conduit-celo
-- **agentscan:** https://agentscan.info/agent/9188
 - **8004scan:** https://8004scan.io/agents/celo/9188
 
 ## Contributing

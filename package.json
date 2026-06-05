@@ -1,6 +1,6 @@
 {
   "name": "conduit-celo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A TypeScript MCP server that connects any AI to the Celo blockchain",
   "main": "dist/index.js",
   "bin": {

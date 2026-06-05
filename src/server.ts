@@ -12,6 +12,8 @@ import { lendOnAave } from './tools/lend_on_aave.js'
 import { selfVerify } from './tools/self_verify.js'
 import { checkAgentId } from './tools/check_agent_id.js'
 import { x402Pay } from './tools/x402_pay.js'
+import { getNetworkStatus } from './tools/get_network_status.js'
+import { getAavePositions } from './tools/get_aave_positions.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -38,6 +40,8 @@ app.post('/api/tool', async (req, res) => {
         result = { status: 'ok', chain: 'celo', blockNumber: block.toString() }
         break
       case 'get_balance': result = await getBalance(params); break
+      case 'get_aave_positions': result = await getAavePositions(params); break
+      case 'get_network_status': result = await getNetworkStatus(); break
       case 'get_transactions': result = await getTransactions(params); break
       case 'get_token_price': result = await getTokenPrice(params); break
       case 'send_tokens': result = await sendTokens(params); break
