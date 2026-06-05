@@ -7,6 +7,7 @@
 [![Built for Celo](https://img.shields.io/badge/Built%20for-Celo-FCFF52.svg)](https://celo.org)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-useconduit.vercel.app-FCFF52)](https://useconduit.vercel.app)
+[![npm downloads](https://img.shields.io/npm/dt/conduit-celo.svg)](https://www.npmjs.com/package/conduit-celo)
 [![8004scan](https://img.shields.io/badge/8004scan-agent%209188-green)](https://8004scan.io/agents/celo/9188)
 
 ## The problem
