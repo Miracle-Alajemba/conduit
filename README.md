@@ -39,9 +39,9 @@ npm run build
 # Start the demo UI
 npm run demo
 ```
-Then open `http://localhost:3000` in your browser to see all 11 tools running live.
+Then open `http://localhost:3000` in your browser to see all 13 tools running live.
 
-## Tools (11 total)
+## Tools (13 total)
 
 | Tool | Type | Description |
 |------|------|-------------|
@@ -54,16 +54,18 @@ Then open `http://localhost:3000` in your browser to see all 11 tools running li
 | `x402_pay` | Write | Make stablecoin payments to x402-enabled endpoints |
 | `lend_on_aave` | Write | Deposit tokens to Aave v3 on Celo to earn yield |
 | `withdraw_from_aave` | Write | Withdraw from your Aave v3 position |
+| `get_aave_positions` | Read | Check active Aave v3 positions (deposits, debt, health factor) |
 | `self_verify` | Read | Verify a wallet's Self Protocol credential |
 | `check_agent_id` | Read | Look up and verify a Self Agent ID |
+| `get_network_status` | Read | Check Celo network health and current gas price |
 
 ## Interactive Demo UI
 
-conduit ships with a built in web UI for testing and demoing all 11 tools directly from your browser. No Claude Desktop or MCP Inspector needed.
+conduit ships with a built in web UI for testing and demoing all 13 tools directly from your browser. No Claude Desktop or MCP Inspector needed.
 
 Features:
 - Live Celo network connection status at the bottom of the page
-- All 11 tools displayed as interactive cards
+- All 13 tools displayed as interactive cards
 - Read tools return live onchain data instantly
 - Write tools default to dry run mode — safe to test without real funds
 - One click copy for the npm install command
@@ -112,7 +114,7 @@ npm install
 npm run build
 npm run demo
 ```
-Open `http://localhost:3000` to interact with all 11 tools from a browser UI.
+Open `http://localhost:3000` to interact with all 13 tools from a browser UI.
 
 ## Configuration
 
@@ -181,7 +183,7 @@ All write tools (`send_tokens`, `swap_tokens`, `x402_pay`, `lend_on_aave`, `with
 - [Mento Protocol](https://mento.org) — Token swaps
 - [Aave v3](https://aave.com) — DeFi lending
 - [Self Protocol](https://self.xyz) — Human verification
-- [x402 / Thirdweb](https://portal.thirdweb.com/x402) — Stablecoin payments
+- [x402 Protocol](https://github.com/x402-pay) — Stablecoin payments via direct HTTP
 
 ## Roadmap
 
