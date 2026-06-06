@@ -1,6 +1,6 @@
 {
   "name": "conduit-celo",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "A TypeScript MCP server that connects any AI to the Celo blockchain",
   "main": "dist/index.js",
   "bin": {
@@ -35,9 +35,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@aave/contract-helpers": "^1.38.0",
-    "@aave/math-utils": "^1.38.0",
-    "@mento-protocol/mento-sdk": "^3.2.8",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

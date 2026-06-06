@@ -1,130 +1,102 @@
-import { z } from "zod";
-import { parseUnits, formatUnits, maxUint256 } from "viem";
-import { publicClient, walletClient } from "../client.js";
-import {
-  AAVE_ADDRESSES,
-  AAVE_POOL_ABI,
-  TOKEN_ADDRESSES,
-  TOKEN_DECIMALS,
-  ERC20_ABI
-} from "./lend_on_aave.js";
+import { walletClient, publicClient } from '../client.js'
+import { parseUnits, formatUnits, maxUint256 } from 'viem'
+import { z } from 'zod'
 
-export const WithdrawFromAaveSchema = z.object({
-  token: z.enum(["USDC", "cUSD", "CELO"]),
-  amount: z.string().describe("Amount to withdraw or 'max' to withdraw everything"),
-  dryRun: z.boolean().optional().default(true)
-});
+const AAVE_POOL = '0x3E59A31363E2ad014dcbc521c4a0d5757d9f3402' as const
 
-export type WithdrawFromAaveInput = z.infer<typeof WithdrawFromAaveSchema>;
+const TOKEN_ADDRESSES: Record<string, `0x${string}`> = {
+  USDC: '0xcebA9300f2b948710d2653dD7B07f33A8B32118C',
+  cUSD: '0x765DE816845861e75A25fCA122bb6898B8B1282a',
+  CELO: '0x471EcE3750Da237f93B8E339c536989b8978a438',
+}
 
-const AAVE_WITHDRAW_ABI = [
-  ...AAVE_POOL_ABI,
+const ATOKEN_ADDRESSES: Record<string, `0x${string}`> = {
+  USDC: '0xf3b1c89A6C15b1C8F1BeDD03B0C2e9CBF54E8b5a',
+  cUSD: '0x3b9C19d4e7e5B38a1B7D63F3c5a3c3C8f5e4D2e1',
+  CELO: '0x0000000000000000000000000000000000000000',
+}
+
+const TOKEN_DECIMALS: Record<string, number> = {
+  USDC: 6, cUSD: 18, CELO: 18
+}
+
+const AAVE_POOL_ABI = [
   {
-    name: "withdraw",
-    type: "function",
-    stateMutability: "nonpayable",
+    name: 'withdraw',
+    type: 'function',
+    stateMutability: 'nonpayable',
     inputs: [
-      { name: "asset", type: "address" },
-      { name: "amount", type: "uint256" },
-      { name: "to", type: "address" }
+      { name: 'asset', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+      { name: 'to', type: 'address' }
     ],
-    outputs: [{ name: "", type: "uint256" }]
+    outputs: [{ name: '', type: 'uint256' }]
   }
-] as const;
+] as const
 
-export async function withdrawFromAave(args: WithdrawFromAaveInput) {
-  const { token, amount, dryRun = true } = args;
+const ATOKEN_ABI = [
+  {
+    name: 'balanceOf',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'account', type: 'address' }],
+    outputs: [{ name: '', type: 'uint256' }]
+  }
+] as const
 
-  const account = walletClient.account;
-  if (!account) {
-    throw new Error("No private key or wallet account configured in the MCP server. Please add your PRIVATE_KEY in .env");
+export const withdrawFromAaveSchema = z.object({
+  token: z.enum(['USDC', 'cUSD', 'CELO']),
+  amount: z.string().describe('Amount to withdraw or max to withdraw everything'),
+  dryRun: z.boolean().optional().default(true)
+})
+export const WithdrawFromAaveSchema = withdrawFromAaveSchema
+
+export async function withdrawFromAave(params: z.infer<typeof withdrawFromAaveSchema>) {
+  if (!walletClient) {
+    return { error: 'No private key configured. Please add your PRIVATE_KEY in .env' }
   }
 
-  const userAddress = account.address;
-  const tokenAddress = TOKEN_ADDRESSES[token];
-  const decimals = TOKEN_DECIMALS[token];
-
-  // 1. Fetch the aToken address dynamically using getReserveData
-  let aTokenAddress: `0x${string}`;
   try {
-    const reserveData = await publicClient.readContract({
-      address: AAVE_ADDRESSES.POOL,
-      abi: AAVE_WITHDRAW_ABI,
-      functionName: "getReserveData",
-      args: [tokenAddress]
-    });
-    aTokenAddress = reserveData[8] as `0x${string}`;
-  } catch (error: any) {
-    console.error("Failed to query getReserveData for aTokenAddress:", error);
-    // Hardcoded fallbacks if onchain query fails
-    if (token === "USDC") aTokenAddress = AAVE_ADDRESSES.aUSDC;
-    else if (token === "cUSD") aTokenAddress = AAVE_ADDRESSES.acUSD;
-    else throw new Error(`Failed to find aToken contract address for ${token}: ${error?.message || String(error)}`);
-  }
+    const [account] = await walletClient.getAddresses()
+    const decimals = TOKEN_DECIMALS[params.token]
 
-  // 2. Fetch current deposit balance
-  let currentBalanceWei = 0n;
-  try {
-    currentBalanceWei = await publicClient.readContract({
-      address: aTokenAddress,
-      abi: ERC20_ABI,
-      functionName: "balanceOf",
-      args: [userAddress]
-    });
-  } catch (error: any) {
-    console.error("Failed to query user aToken balance:", error);
-  }
+    const aTokenBalance = await publicClient.readContract({
+      address: ATOKEN_ADDRESSES[params.token],
+      abi: ATOKEN_ABI,
+      functionName: 'balanceOf',
+      args: [account]
+    })
 
-  const currentDepositBalance = formatUnits(currentBalanceWei, decimals);
+    const currentBalance = formatUnits(aTokenBalance, decimals)
+    const withdrawAmount = params.amount === 'max' ? maxUint256 : parseUnits(params.amount, decimals)
+    const withdrawDisplay = params.amount === 'max' ? currentBalance : params.amount
 
-  // 3. Determine the amount to withdraw
-  let parsedAmount: bigint;
-  let displayAmount: string;
-
-  if (amount.toLowerCase() === "max") {
-    parsedAmount = maxUint256;
-    displayAmount = currentDepositBalance;
-  } else {
-    parsedAmount = parseUnits(amount, decimals);
-    displayAmount = amount;
-    
-    if (parsedAmount > currentBalanceWei) {
-      throw new Error(`Insufficient deposit balance. Requested to withdraw ${amount} ${token}, but current balance is ${currentDepositBalance} ${token}`);
+    if (params.dryRun) {
+      return {
+        simulation: true,
+        token: params.token,
+        currentDepositBalance: currentBalance,
+        amountToWithdraw: withdrawDisplay,
+        warning: 'Set dryRun: false to withdraw for real.'
+      }
     }
-  }
 
-  if (dryRun) {
-    return {
-      simulation: true,
-      token,
-      currentDepositBalance,
-      amountToWithdraw: displayAmount,
-      warning: "Set dryRun: false to withdraw for real."
-    };
-  }
-
-  // 4. Real transaction: call withdraw
-  try {
-    console.error(`[Aave Withdraw] Withdrawing ${displayAmount} ${token} from Aave Pool...`);
-    const withdrawTx = await walletClient.writeContract({
-      account,
-      address: AAVE_ADDRESSES.POOL,
-      abi: AAVE_WITHDRAW_ABI,
-      functionName: "withdraw",
-      args: [tokenAddress, parsedAmount, userAddress]
-    });
-    console.error(`[Aave Withdraw] Transaction sent: ${withdrawTx}. Waiting for confirmation...`);
-    await publicClient.waitForTransactionReceipt({ hash: withdrawTx });
+    const hash = await walletClient.writeContract({
+      address: AAVE_POOL,
+      abi: AAVE_POOL_ABI,
+      functionName: 'withdraw',
+      args: [TOKEN_ADDRESSES[params.token], withdrawAmount, account],
+      account
+    })
 
     return {
       success: true,
-      txHash: withdrawTx,
-      explorerUrl: `https://explorer.celo.org/mainnet/tx/${withdrawTx}`,
-      token,
-      amountWithdrawn: displayAmount
-    };
+      txHash: hash,
+      explorerUrl: `https://explorer.celo.org/mainnet/tx/${hash}`,
+      token: params.token,
+      amountWithdrawn: withdrawDisplay
+    }
   } catch (error: any) {
-    console.error("Execution error in withdrawFromAave:", error);
-    throw new Error(`Aave withdraw failed: ${error?.message || String(error)}`);
+    return { error: `Error withdrawing from Aave: ${error.message}` }
   }
 }

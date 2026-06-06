@@ -1,136 +1,160 @@
-import { z } from "zod";
-import { parseUnits, formatUnits } from "viem";
-import { createRequire } from "module";
-import { publicClient, walletClient } from "../client.js";
+import { walletClient, publicClient } from '../client.js'
+import { parseUnits, formatUnits } from 'viem'
+import { z } from 'zod'
 
-const require = createRequire(import.meta.url);
-const { Mento } = require("@mento-protocol/mento-sdk");
+const TOKEN_ADDRESSES: Record<string, `0x${string}`> = {
+  USDC:  '0xcebA9300f2b948710d2653dD7B07f33A8B32118C',
+  cUSD:  '0x765DE816845861e75A25fCA122bb6898B8B1282a',
+  cKES:  '0x456a3D042C0DbD3db53D5489e98dFb038553B0d0',
+  cEUR:  '0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73',
+  CELO:  '0x471EcE3750Da237f93B8E339c536989b8978a438',
+}
 
-export const SwapTokensSchema = z.object({
-  fromToken: z.enum(["CELO", "USDC", "cUSD", "cKES", "cEUR"]),
-  toToken: z.enum(["CELO", "USDC", "cUSD", "cKES", "cEUR"]),
-  amount: z.string().describe("Amount of fromToken to swap e.g. '10.5'"),
-  slippageTolerance: z.number().min(0.1).max(5).optional().default(0.5).describe("Slippage tolerance in percent"),
-  dryRun: z.boolean().optional().default(true).describe("If true, simulate the transaction without executing it")
-}).refine(data => data.fromToken !== data.toToken, {
-  message: "fromToken and toToken must be different",
-  path: ["toToken"]
-});
+const TOKEN_DECIMALS: Record<string, number> = {
+  USDC: 6, cUSD: 18, cKES: 18, cEUR: 18, CELO: 18
+}
 
-export type SwapTokensInput = z.infer<typeof SwapTokensSchema>;
+const MENTO_BROKER = '0x777A8255cA72412f0d706dc03C9D1987306B4CaD' as const
+const EXCHANGE_PROVIDER = '0x22d9db95E6Ae61c104A7B6F6C78D7993B94ec901' as const
 
-const TOKEN_ADDRESSES = {
-  CELO: "0x471EcE3750Da237f93B8E339c536989b8978a438",
-  USDC: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C",
-  cUSD: "0x765DE816845861e75A25fCA122bb6898B8B1282a",
-  cKES: "0x456a3D042C0DbD3db53D5489e98dFb038553B0d0",
-  cEUR: "0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73",
-} as const;
+const BROKER_ABI = [
+  {
+    name: 'getAmountOut',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'exchangeProvider', type: 'address' },
+      { name: 'exchangeId', type: 'bytes32' },
+      { name: 'tokenIn', type: 'address' },
+      { name: 'tokenOut', type: 'address' },
+      { name: 'amountIn', type: 'uint256' }
+    ],
+    outputs: [{ name: 'amountOut', type: 'uint256' }]
+  },
+  {
+    name: 'swapIn',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'exchangeProvider', type: 'address' },
+      { name: 'exchangeId', type: 'bytes32' },
+      { name: 'tokenIn', type: 'address' },
+      { name: 'tokenOut', type: 'address' },
+      { name: 'amountIn', type: 'uint256' },
+      { name: 'amountOutMin', type: 'uint256' }
+    ],
+    outputs: [{ name: 'amountOut', type: 'uint256' }]
+  }
+] as const
 
-const TOKEN_DECIMALS = {
-  CELO: 18,
-  USDC: 6,
-  cUSD: 18,
-  cKES: 18,
-  cEUR: 18,
-} as const;
+const ERC20_APPROVE_ABI = [
+  {
+    name: 'approve',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' }
+    ],
+    outputs: [{ name: '', type: 'bool' }]
+  }
+] as const
 
-export async function swapTokens(args: SwapTokensInput) {
-  const { fromToken, toToken, amount, slippageTolerance = 0.5, dryRun = true } = args;
+const EXCHANGE_IDS: Record<string, `0x${string}`> = {
+  'CELO-cUSD': '0x3135b662c38265d0655177091f1b647b4fef511103d06c016efdf18b46930d2c',
+  'cUSD-CELO': '0x3135b662c38265d0655177091f1b647b4fef511103d06c016efdf18b46930d2c',
+  'USDC-cUSD': '0x3135b662c38265d0655177091f1b647b4fef511103d06c016efdf18b46930d2c',
+  'cUSD-USDC': '0x3135b662c38265d0655177091f1b647b4fef511103d06c016efdf18b46930d2c',
+  'cUSD-cKES': '0x0000000000000000000000000000000000000000000000000000000000000001',
+  'cKES-cUSD': '0x0000000000000000000000000000000000000000000000000000000000000001',
+  'cUSD-cEUR': '0x0000000000000000000000000000000000000000000000000000000000000002',
+  'cEUR-cUSD': '0x0000000000000000000000000000000000000000000000000000000000000002',
+}
 
-  const account = walletClient.account;
-  if (!account) {
-    throw new Error("No private key or wallet account configured in the MCP server. Please add your PRIVATE_KEY in .env");
+export const swapTokensSchema = z.object({
+  fromToken: z.enum(['CELO', 'USDC', 'cUSD', 'cKES', 'cEUR']),
+  toToken: z.enum(['CELO', 'USDC', 'cUSD', 'cKES', 'cEUR']),
+  amount: z.string().describe('Amount of fromToken to swap e.g. 10.5'),
+  slippageTolerance: z.number().min(0.1).max(5).optional().default(0.5),
+  dryRun: z.boolean().optional().default(true)
+})
+export const SwapTokensSchema = swapTokensSchema
+
+export async function swapTokens(params: z.infer<typeof swapTokensSchema>) {
+  if (params.fromToken === params.toToken) {
+    throw new Error('fromToken and toToken must be different')
   }
 
-  const senderAddress = account.address;
-  const fromAddress = TOKEN_ADDRESSES[fromToken];
-  const toAddress = TOKEN_ADDRESSES[toToken];
-  const fromDecimals = TOKEN_DECIMALS[fromToken];
-  const toDecimals = TOKEN_DECIMALS[toToken];
+  if (!walletClient) {
+    return { error: 'No private key configured. Please add your PRIVATE_KEY in .env' }
+  }
 
-  const amountInParsed = parseUnits(amount, fromDecimals);
-
-  // Initialize Mento SDK
-  const mento = await Mento.create(42220, publicClient);
-
-  // Get quote
-  let expectedAmountOut: bigint;
   try {
-    expectedAmountOut = await mento.quotes.getAmountOut(fromAddress, toAddress, amountInParsed);
-  } catch (error: any) {
-    console.error("Mento quoting failed:", error);
-    throw new Error(`Failed to get Mento swap quote: ${error?.message || String(error)}. Note: Mento V3 primarily supports stablecoin-to-stablecoin pools (cUSD/cEUR/cKES/USDC).`);
-  }
+    const fromDecimals = TOKEN_DECIMALS[params.fromToken]
+    const toDecimals = TOKEN_DECIMALS[params.toToken]
+    const amountIn = parseUnits(params.amount, fromDecimals)
+    const pairKey = `${params.fromToken}-${params.toToken}`
+    const exchangeId = EXCHANGE_IDS[pairKey]
 
-  // Calculate minimum amount out
-  const basisPoints = BigInt(Math.floor(slippageTolerance * 100));
-  const slippageMultiplier = 10000n - basisPoints;
-  const amountOutMinParsed = (expectedAmountOut * slippageMultiplier) / 10000n;
-
-  const estimatedAmountOut = formatUnits(expectedAmountOut, toDecimals);
-  const minimumAmountOut = formatUnits(amountOutMinParsed, toDecimals);
-
-  if (dryRun) {
-    return {
-      simulation: true,
-      fromToken,
-      toToken,
-      amountIn: amount,
-      estimatedAmountOut,
-      minimumAmountOut,
-      slippageTolerance: `${slippageTolerance}%`,
-      warning: "Set dryRun: false to execute this swap for real."
-    };
-  } else {
-    // Execute swap
-    try {
-      const deadline = BigInt(Math.floor(Date.now() / 1000) + 300); // 5 minutes in future
-
-      // Build the Mento swap transaction
-      const { approval, swap } = await mento.swap.buildSwapTransaction(
-        fromAddress,
-        toAddress,
-        amountInParsed,
-        senderAddress as `0x${string}`,
-        senderAddress as `0x${string}`,
-        { slippageTolerance, deadline }
-      );
-
-      // Handle token approval if required
-      if (approval) {
-        console.error("[Mento Swap] Sending token approval transaction...");
-        const approvalHash = await walletClient.sendTransaction({
-          account,
-          to: approval.to as `0x${string}`,
-          data: approval.data as `0x${string}`,
-          value: approval.value ? BigInt(approval.value) : undefined
-        });
-        console.error(`[Mento Swap] Approval transaction sent: ${approvalHash}. Waiting for confirmation...`);
-        await publicClient.waitForTransactionReceipt({ hash: approvalHash });
-      }
-
-      // Execute swap transaction
-      console.error("[Mento Swap] Executing swap transaction...");
-      const txHash = await walletClient.sendTransaction({
-        account,
-        to: swap.params.to as `0x${string}`,
-        data: swap.params.data as `0x${string}`,
-        value: swap.params.value ? BigInt(swap.params.value) : undefined
-      });
-
+    if (!exchangeId) {
       return {
-        success: true,
-        txHash,
-        explorerUrl: `https://explorer.celo.org/mainnet/tx/${txHash}`,
-        fromToken,
-        toToken,
-        amountIn: amount,
-        amountOut: estimatedAmountOut
-      };
-    } catch (error: any) {
-      console.error("Execution error in swapTokens:", error);
-      throw new Error(`Swap execution failed: ${error?.message || String(error)}`);
+        error: `Swap pair ${params.fromToken} → ${params.toToken} not supported. Try routing through cUSD first.`
+      }
     }
+
+    const amountOut = await publicClient.readContract({
+      address: MENTO_BROKER,
+      abi: BROKER_ABI,
+      functionName: 'getAmountOut',
+      args: [EXCHANGE_PROVIDER, exchangeId, TOKEN_ADDRESSES[params.fromToken], TOKEN_ADDRESSES[params.toToken], amountIn]
+    })
+
+    const slippageMultiplier = 1 - (params.slippageTolerance / 100)
+    const amountOutMin = BigInt(Math.floor(Number(amountOut) * slippageMultiplier))
+    const estimatedOut = formatUnits(amountOut, toDecimals)
+    const minimumOut = formatUnits(amountOutMin, toDecimals)
+
+    if (params.dryRun) {
+      return {
+        simulation: true,
+        fromToken: params.fromToken,
+        toToken: params.toToken,
+        amountIn: params.amount,
+        estimatedAmountOut: estimatedOut,
+        minimumAmountOut: minimumOut,
+        slippageTolerance: `${params.slippageTolerance}%`,
+        warning: 'Set dryRun: false to execute this swap for real.'
+      }
+    }
+
+    const [account] = await walletClient.getAddresses()
+
+    await walletClient.writeContract({
+      address: TOKEN_ADDRESSES[params.fromToken],
+      abi: ERC20_APPROVE_ABI,
+      functionName: 'approve',
+      args: [MENTO_BROKER, amountIn],
+      account
+    })
+
+    const hash = await walletClient.writeContract({
+      address: MENTO_BROKER,
+      abi: BROKER_ABI,
+      functionName: 'swapIn',
+      args: [EXCHANGE_PROVIDER, exchangeId, TOKEN_ADDRESSES[params.fromToken], TOKEN_ADDRESSES[params.toToken], amountIn, amountOutMin],
+      account
+    })
+
+    return {
+      success: true,
+      txHash: hash,
+      explorerUrl: `https://explorer.celo.org/mainnet/tx/${hash}`,
+      fromToken: params.fromToken,
+      toToken: params.toToken,
+      amountIn: params.amount,
+      amountOut: estimatedOut
+    }
+  } catch (error: any) {
+    return { error: `Error executing swap: ${error.message}` }
   }
 }
